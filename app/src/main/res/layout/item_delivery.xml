@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.deliveryapp.domain.entity.Delivery"/>
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:contentDescription="@string/app_name"
+            android:id="@+id/imageView"
+            android:layout_width="@dimen/size_50"
+            android:layout_height="@dimen/size_50"
+            android:scaleType="centerCrop"
+            app:imageUrl="@{viewModel.imageUrl}"/>
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_marginStart="10dp"
+            android:layout_centerVertical="true"
+            style="@style/delivery_text_style"
+            android:text="@{@string/label_delivery(viewModel.description, viewModel.location.address)}"
+            android:layout_toEndOf="@id/imageView"/>
+
+    </RelativeLayout>
+</layout>

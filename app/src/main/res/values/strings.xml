@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">DeliveryApp</string>
+
+    <string name="delivery_list_error_message">Error fetching deliveries, please try later</string>
+    <string name="network_error">No internet connection, please check and try again</string>
+
+    <string name="label_delivery">%s at %s</string>
+    <string name="all_data_fetched">All data fetched from the server</string>
+
+    <string name="load_more">Load More</string>
+</resources>
