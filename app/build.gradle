@@ -16,10 +16,11 @@ android {
         multiDexEnabled true
         testInstrumentationRunner "com.deliveryapp.MyRunner"
 
-        resValue "string", "google_maps_key",
-                (project.findProperty("GOOGLE_MAPS_API_KEY") ?: "")
-        buildConfigField "String", "BASE_URL",
-                (project.findProperty("BASE_URL") ?: "")
+        resValue "string", "google_maps_key", (project.findProperty("GOOGLE_MAPS_API_KEY") ?: "")
+        buildConfigField "String", "BASE_URL", (project.findProperty("BASE_URL") ?: "")
+        buildConfigField "Float", "DEFAULT_MAP_ZOOM", (project.findProperty("DEFAULT_MAP_ZOOM") ?: "")
+        buildConfigField "String", "DATABASE_NAME", (project.findProperty("DATABASE_NAME") ?: "")
+        buildConfigField "Integer", "PAGE_SIZE", (project.findProperty("PAGE_SIZE") ?: "")
     }
     buildTypes {
         release {

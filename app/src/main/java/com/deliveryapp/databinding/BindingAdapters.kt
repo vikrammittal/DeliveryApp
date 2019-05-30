@@ -5,8 +5,8 @@ import android.databinding.BindingConversion
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import com.deliveryapp.BuildConfig
 import com.deliveryapp.domain.entity.Delivery
-import com.deliveryapp.utils.Constants
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.MapsInitializer
@@ -34,7 +34,7 @@ fun addMarkerToMap(mapView: MapView, delivery: Delivery?) {
         mapView.getMapAsync { googleMap ->
             MapsInitializer.initialize(mapView.context)
             val latLng = LatLng(delivery.location.lat, delivery.location.lng)
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, Constants.DEFAULT_MAP_ZOOM))
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, BuildConfig.DEFAULT_MAP_ZOOM))
             googleMap.addMarker(MarkerOptions().position(latLng).title(delivery.location.address))
             mapView.onResume()
         }

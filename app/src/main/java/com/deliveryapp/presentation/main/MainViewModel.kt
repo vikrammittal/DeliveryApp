@@ -5,17 +5,14 @@ import android.arch.lifecycle.ViewModel
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import android.databinding.ObservableBoolean
-import android.os.Bundle
-import com.deliveryapp.domain.Constants
+import com.deliveryapp.BuildConfig
 import com.deliveryapp.domain.entity.Delivery
 import com.deliveryapp.domain.usecase.DeliveryUseCase
-import com.deliveryapp.presentation.deliverydetail.DeliveryDetailActivity
 import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(
-    val deliveryUseCase: DeliveryUseCase,
-    private val mainRouter: MainRouter
+    var deliveryUseCase: DeliveryUseCase
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
@@ -26,8 +23,8 @@ class MainViewModel @Inject constructor(
 
     init {
         val config = PagedList.Config.Builder()
-            .setPageSize(Constants.PAGE_SIZE)
-            .setInitialLoadSizeHint(Constants.PAGE_SIZE)
+            .setPageSize(BuildConfig.PAGE_SIZE)
+            .setInitialLoadSizeHint(BuildConfig.PAGE_SIZE)
             .setEnablePlaceholders(false)
             .build()
 
@@ -40,13 +37,6 @@ class MainViewModel @Inject constructor(
     fun onRefresh() {
         isLoading.set(true)
         deliveryBoundaryCallback.onRefresh()
-    }
-
-    // Shows delivery detail screen based on delivery clicked
-    fun onDeliveryClicked(delivery: Any) {
-        mainRouter.navigate(MainRouter.Route.DELIVERY_DETAIL, Bundle().apply {
-            putInt(DeliveryDetailActivity.EXTRA_DELIVERY_ID, (delivery as Delivery).id)
-        })
     }
 
     fun retry() = deliveryBoundaryCallback.retry()

@@ -1,10 +1,10 @@
 package com.deliveryapp.presentation.models
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import com.deliveryapp.presentation.deliverydetail.DeliveryDetailViewModel
 import com.deliveryapp.domain.entity.Delivery
 import com.deliveryapp.domain.entity.DeliveryLocation
 import com.deliveryapp.domain.usecase.DeliveryUseCase
+import com.deliveryapp.presentation.deliverydetail.DeliveryDetailViewModel
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.given
 import com.nhaarman.mockito_kotlin.never
@@ -41,7 +41,7 @@ class DeliveryDetailViewModelTest {
             1,
             "hi",
             "",
-            DeliveryLocation( 1.1, 1.1, "")
+            DeliveryLocation(1.1, 1.1, "")
         )
         given(deliveryUseCase.getDelivery(ArgumentMatchers.anyInt()))
             .willReturn(Single.just(delivery))

@@ -17,6 +17,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.fakes.RoboMenuItem
 
 @RunWith(RobolectricTestRunner::class)
 class DeliveryDetailActivityTest {
@@ -41,7 +42,7 @@ class DeliveryDetailActivityTest {
             1,
             "hi",
             "",
-            DeliveryLocation( 1.1, 1.1, "")
+            DeliveryLocation(1.1, 1.1, "")
         )
         given(viewModel.delivery).willReturn(ObservableField(delivery))
         viewModel.bound(1)
@@ -52,4 +53,10 @@ class DeliveryDetailActivityTest {
         assert(activity.findViewById<RelativeLayout>(R.id.delivery_details).findViewById<TextView>(R.id.description).visibility == View.VISIBLE)
     }
 
+    @Test
+    fun backButtonTest() {
+        val menuItem = RoboMenuItem(android.R.id.home)
+        activity.onOptionsItemSelected(menuItem)
+        assert(activity.isFinishing)
+    }
 }

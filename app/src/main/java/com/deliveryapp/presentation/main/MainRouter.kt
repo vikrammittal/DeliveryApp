@@ -11,13 +11,12 @@ import java.lang.ref.WeakReference
  */
 class MainRouter(private val activityRef: WeakReference<Activity>) {
 
-    enum class Route {
-        DELIVERY_DETAIL,
-        IMAGE_DETAIL
+    companion object {
+        const val DELIVERY_DETAIL = "delivery_detail"
     }
-
-    fun navigate(route: Route, bundle: Bundle = Bundle()) {
-        if (route == Route.DELIVERY_DETAIL) {
+    
+    fun navigate(route: String, bundle: Bundle = Bundle()) {
+        if (route == DELIVERY_DETAIL) {
             showNextScreen(DeliveryDetailActivity::class.java, bundle)
         }
     }

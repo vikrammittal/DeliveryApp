@@ -1,10 +1,10 @@
 package com.deliveryapp.presentation
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
+import com.deliveryapp.BuildConfig
+import com.deliveryapp.domain.usecase.DeliveryUseCase
 import com.deliveryapp.presentation.main.DeliveryBoundaryCallback
 import com.deliveryapp.rx.RxJavaTestHooksResetRule
-import com.deliveryapp.domain.Constants
-import com.deliveryapp.domain.usecase.DeliveryUseCase
 import com.nhaarman.mockito_kotlin.*
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -37,7 +37,7 @@ class DeliveryBoundaryCallbackTest {
 
         val spy = spy(deliveryBoundaryCallback)
         spy.onZeroItemsLoaded()
-        verify(spy, times(1)).fetchNetwork(0, Constants.PAGE_SIZE)
+        verify(spy, times(1)).fetchNetwork(0, BuildConfig.PAGE_SIZE)
         verify(spy, times(1)).updateState(any())
     }
 
@@ -59,7 +59,7 @@ class DeliveryBoundaryCallbackTest {
         spy.onRefresh()
         assert(spy.totalCount == 0)
         verify(spy, times(1)).onZeroItemsLoaded()
-        verify(spy, times(1)).fetchNetwork(0, Constants.PAGE_SIZE)
+        verify(spy, times(1)).fetchNetwork(0, BuildConfig.PAGE_SIZE)
         verify(spy, times(1)).updateState(any())
     }
 }

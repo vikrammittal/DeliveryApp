@@ -2,7 +2,7 @@ package com.deliveryapp.presentation.main
 
 import android.arch.lifecycle.MutableLiveData
 import android.arch.paging.PagedList
-import com.deliveryapp.domain.Constants
+import com.deliveryapp.BuildConfig
 import com.deliveryapp.domain.entity.Delivery
 import com.deliveryapp.domain.entity.Result
 import com.deliveryapp.domain.repository.State
@@ -26,7 +26,7 @@ class DeliveryBoundaryCallback(
 
     override fun onZeroItemsLoaded() {
         updateState(State.LOADING)
-        fetchNetwork(0, Constants.PAGE_SIZE)
+        fetchNetwork(0, BuildConfig.PAGE_SIZE)
         EspressoIdlingResource.increment()
     }
 
@@ -46,7 +46,7 @@ class DeliveryBoundaryCallback(
         super.onItemAtEndLoaded(itemAtEnd)
         if (!isLoaded) {
             updateState(State.PAGE_LOADING)
-            fetchNetwork(totalCount, Constants.PAGE_SIZE)
+            fetchNetwork(totalCount, BuildConfig.PAGE_SIZE)
         }
     }
 
@@ -55,7 +55,7 @@ class DeliveryBoundaryCallback(
             deliveryUseCase.fetchDeliveries(offset, limit)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { result ->
+                .subscribe({ result ->
                     when (result) {
                         is Result.Success -> {
                             success(result.response as List<Delivery>)
@@ -64,13 +64,13 @@ class DeliveryBoundaryCallback(
                             error(result.throwable)
                         }
                     }
-                }
+                }, { e -> error(e) })
         )
     }
 
     private fun success(list: List<Delivery>) {
         totalCount += list.size
-        if (list.size < Constants.PAGE_SIZE) {
+        if (list.size < BuildConfig.PAGE_SIZE) {
             isLoaded = true
             updateState(State.LOADED)
         } else
@@ -93,7 +93,7 @@ class DeliveryBoundaryCallback(
 
     fun retry() {
         updateState(State.PAGE_LOADING)
-        fetchNetwork(totalCount, Constants.PAGE_SIZE)
+        fetchNetwork(totalCount, BuildConfig.PAGE_SIZE)
     }
 
     fun onRefresh() {

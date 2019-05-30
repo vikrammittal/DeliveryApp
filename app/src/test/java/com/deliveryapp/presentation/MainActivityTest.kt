@@ -18,11 +18,8 @@ import com.deliveryapp.presentation.adapter.DeliveryListAdapter
 import com.deliveryapp.presentation.deliverydetail.DeliveryDetailActivity
 import com.deliveryapp.presentation.main.DeliveryBoundaryCallback
 import com.deliveryapp.presentation.main.MainActivity
-import com.deliveryapp.presentation.main.MainRouter
 import com.deliveryapp.presentation.main.MainViewModel
-import com.nhaarman.mockito_kotlin.given
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -37,7 +34,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
-import java.lang.ref.WeakReference
+import org.robolectric.shadows.ShadowAlertDialog
 
 
 @Config(manifest = Config.NONE)
@@ -60,6 +57,8 @@ class MainActivityTest {
     private lateinit var isLoading: ObservableBoolean
     @Mock
     private lateinit var deliveryBoundaryCallback: DeliveryBoundaryCallback
+    @Mock
+    private lateinit var adapter: DeliveryListAdapter
 
     @Captor
     private lateinit var deliveryListCaptor: ArgumentCaptor<Observer<PagedList<Delivery>>>
@@ -78,6 +77,7 @@ class MainActivityTest {
         activityController.create()
         activity.setTestViewModel(viewModel)
         activityController.start()
+        activity.adapter = adapter
 
         verify(deliveryList).observe(ArgumentMatchers.any(LifecycleOwner::class.java), deliveryListCaptor.capture())
         verify(state).observe(ArgumentMatchers.any(LifecycleOwner::class.java), stateCaptor.capture())
@@ -96,9 +96,7 @@ class MainActivityTest {
         val deliveryUseCase = Mockito.mock(DeliveryUseCase::class.java)
         given(deliveryUseCase.getDeliveries()).willReturn(mock())
 
-        val mainRouter = MainRouter(WeakReference(activity))
-        val viewModel = MainViewModel(deliveryUseCase, mainRouter)
-        viewModel.onDeliveryClicked(mock<Delivery>())
+        activity.onDeliveryClicked(mock<Delivery>())
 
         val startedIntent = Shadows.shadowOf(activity).nextStartedActivity
         val shadowIntent = Shadows.shadowOf(startedIntent)
@@ -106,7 +104,7 @@ class MainActivityTest {
     }
 
     @Test
-    fun displayListTest() {
+    fun dataSuccessTest() {
         val list = ArrayList<Delivery>()
         for (i in 0 until 10) {
             list.add(
@@ -120,19 +118,32 @@ class MainActivityTest {
 
         deliveryListCaptor.value.onChanged(pagedList)
         stateCaptor.value.onChanged(State.DONE)
-
-        assertEquals(pagedList, activity.adapter.currentList)
-        assert(!activity.swipeRefreshLayout.isRefreshing)
-
-        assert(activity.adapter.itemCount == 10)
-        activity.adapter.currentList?.size?.let { assert(it == list.size) }
-        assert(activity.adapter.getDeliveryItem(2)?.id == 3)
+        verify(activity.adapter).submitList(pagedList)
+        verify(activity.adapter, times(1)).setLoading(any(), any())
     }
 
     @Test
-    fun errorThrownTest() {
+    fun dataErrorTest() {
         stateCaptor.value.onChanged(State.ERROR)
+        assert(ShadowAlertDialog.getShownDialogs().size == 1)
         assert(!viewModel.isLoading.get())
+        verify(activity.adapter, times(2)).setLoading(any(), any())
+    }
+
+    @Test
+    fun networkErrorTest() {
+        stateCaptor.value.onChanged(State.NETWORK_ERROR)
+        assert(ShadowAlertDialog.getShownDialogs().size == 1)
+        assert(!viewModel.isLoading.get())
+        verify(activity.adapter, times(2)).setLoading(any(), any())
+    }
+
+    @Test
+    fun allDataLoadedTest() {
+        stateCaptor.value.onChanged(State.LOADED)
+        assert(ShadowAlertDialog.getShownDialogs().size == 1)
+        assert(!viewModel.isLoading.get())
+        verify(activity.adapter, times(2)).setLoading(any(), any())
     }
 
     @Test
@@ -152,8 +163,15 @@ class MainActivityTest {
         assert(DeliveryListAdapter.deliveriesDiffCallback.areContentsTheSame(delivery1, delivery2))
         assert(DeliveryListAdapter.deliveriesDiffCallback.areItemsTheSame(delivery1, delivery2))
 
+        val pagedList = ArrayList<Delivery>()
+        pagedList.add(delivery1)
+        pagedList.add(delivery2)
 
-        val holder = activity.adapter.onCreateViewHolder(activity.recyclerView, 0)
+        val adapter = DeliveryListAdapter()
+        adapter.onItemClickListener = mock()
+        adapter.onLoadMoreClickListener = mock()
+        adapter.submitList(mockPagedList(pagedList))
+        val holder = adapter.onCreateViewHolder(activity.recyclerView, 0)
         if (holder is DeliveryListAdapter.DeliveryItemHolder) {
             holder.bind(delivery1)
             assert(holder.delivery == delivery1)
@@ -162,34 +180,51 @@ class MainActivityTest {
             val list = ArrayList<Delivery>()
             list.add(delivery1)
             list.add(delivery2)
-            activity.adapter.currentList?.add(delivery1)
-            activity.adapter.currentList?.add(delivery2)
+            adapter.currentList?.add(delivery1)
+            adapter.currentList?.add(delivery2)
             holder.bind(delivery1)
             assert(holder.binding.viewModel == delivery1)
         }
+        assert(adapter.getDeliveryItem(0) == delivery1)
     }
 
     @Test
-    fun adapterProgessHolderTest() {
-        val holder = activity.adapter.onCreateViewHolder(activity.recyclerView, 1)
+    fun adapterProgressHolderTest() {
+        val delivery1 = Delivery(
+            1, "hi", "",
+            DeliveryLocation(1.0, 2.0, "")
+        )
+        val pagedList = ArrayList<Delivery>()
+        pagedList.add(delivery1)
+        val adapter = DeliveryListAdapter()
+        adapter.onItemClickListener = mock()
+        adapter.onLoadMoreClickListener = mock()
+        adapter.submitList(mockPagedList(pagedList))
+        val holder = adapter.onCreateViewHolder(activity.recyclerView, 1)
         if (holder is DeliveryListAdapter.ProgressViewHolder) {
             holder.bind(true, true)
             assert(holder.binding.progressBar.visibility == View.VISIBLE)
             assert(holder.binding.btnLoadMore.visibility == View.VISIBLE)
 
-            activity.adapter.setLoading(true, true)
-            activity.adapter.onBindViewHolder(holder, activity.adapter.itemCount - 1)
+            adapter.setLoading(true, true)
+            adapter.onBindViewHolder(holder, adapter.itemCount - 1)
             assert(holder.binding.loadMore)
             assert(holder.binding.loading)
 
-            activity.adapter.onBindViewHolder(holder, activity.adapter.itemCount - 1, ArrayList())
+            adapter.onBindViewHolder(holder, adapter.itemCount - 1, ArrayList())
             assert(holder.binding.loadMore)
             assert(holder.binding.loading)
         }
     }
 
     @Test
-    fun alertTest() {
+    fun viewModelFactoryTest() {
+        val model: Any = activity.viewModelFactory.create(MainViewModel::class.java)
+        assert(model is MainViewModel)
+    }
+
+    @Test
+    fun showAlertTest() {
         val alert = activity.showAlert(R.string.network_error)
         alert.show()
         assert(alert.isShowing)

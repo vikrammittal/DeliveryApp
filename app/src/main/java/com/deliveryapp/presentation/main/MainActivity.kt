@@ -10,10 +10,12 @@ import android.support.v7.widget.LinearLayoutManager
 import android.widget.LinearLayout
 import com.deliveryapp.R
 import com.deliveryapp.databinding.ActivityMainBinding
+import com.deliveryapp.domain.entity.Delivery
 import com.deliveryapp.domain.repository.State
 import com.deliveryapp.presentation.BaseActivity
 import com.deliveryapp.presentation.ViewModelFactory
 import com.deliveryapp.presentation.adapter.DeliveryListAdapter
+import com.deliveryapp.presentation.deliverydetail.DeliveryDetailActivity
 import org.jetbrains.annotations.TestOnly
 import javax.inject.Inject
 
@@ -22,6 +24,8 @@ class MainActivity : BaseActivity() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
+    @Inject
+    lateinit var mainRouter: MainRouter
     lateinit var viewModel: MainViewModel
     lateinit var adapter: DeliveryListAdapter
 
@@ -35,7 +39,7 @@ class MainActivity : BaseActivity() {
         binding.viewModel = viewModel
 
         adapter = DeliveryListAdapter()
-        adapter.onItemClickListener = { viewModel.onDeliveryClicked(it) }
+        adapter.onItemClickListener = { onDeliveryClicked(it) }
         adapter.onLoadMoreClickListener = { viewModel.retry() }
         binding.recyclerView.layoutManager =
             LinearLayoutManager(this, LinearLayout.VERTICAL, false)
@@ -47,10 +51,10 @@ class MainActivity : BaseActivity() {
             )
         )
 
-        observerViewModel()
+        subscribe()
     }
 
-    private fun observerViewModel(){
+    private fun subscribe() {
         viewModel.deliveryList.observe(this, Observer {
             adapter.submitList(it)
             adapter.notifyDataSetChanged()
@@ -86,6 +90,12 @@ class MainActivity : BaseActivity() {
         })
     }
 
+    fun onDeliveryClicked(delivery: Any) {
+        mainRouter.navigate(MainRouter.DELIVERY_DETAIL, Bundle().apply {
+            putInt(DeliveryDetailActivity.EXTRA_DELIVERY_ID, (delivery as Delivery).id)
+        })
+    }
+
     fun showAlert(error: Int): AlertDialog = AlertDialog.Builder(this)
         .setMessage(getString(error))
         .setNeutralButton(getString(android.R.string.ok)) { dialog, _ -> dialog.dismiss() }
@@ -94,6 +104,6 @@ class MainActivity : BaseActivity() {
     @TestOnly
     fun setTestViewModel(viewModel: MainViewModel) {
         this.viewModel = viewModel
-        observerViewModel()
+        subscribe()
     }
 }
